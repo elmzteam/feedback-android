@@ -1,4 +1,4 @@
-package design.jsby.tact;
+package design.jsby.feedback;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

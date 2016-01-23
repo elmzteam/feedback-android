@@ -1,5 +1,7 @@
 <resources>
-	<string name="app_name">Tact</string>
+	<string name="app_name">Feedback</string>
+
+	<string name="label_nearby">Nearby</string>
 
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>

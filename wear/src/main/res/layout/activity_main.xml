@@ -6,14 +6,13 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	tools:context="design.jsby.tact.MainActivity"
+	tools:context="design.jsby.feedback.ui.MainActivity"
 	tools:deviceIds="wear">
 
 	<TextView
 		android:id="@+id/text"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:text="@string/hello_world"
 		app:layout_box="all"/>
 
 	<TextView

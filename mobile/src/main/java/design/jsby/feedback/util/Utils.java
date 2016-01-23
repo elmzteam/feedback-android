@@ -1,37 +1,25 @@
-/*
- * Copyright 2014 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * Modifications:
- * -From Google iosched com/google/samples/apps/iosched/util
- * -Changed package names
- * -Removed Config check
- * -Changed LOG_PREFIX
- */
-
 package design.jsby.feedback.util;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
-import design.jsby.feedback.BuildConfig;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Scanner;
 
 public class Utils {
-	private static final String LOG_PREFIX = "silo_";
+	private static final String TAG = makeLogTag(Utils.class);
+	public static final String PREFS_NAME = "AUTH";
+	private static final String LOG_PREFIX = "feedback_";
 	private static final int LOG_PREFIX_LENGTH = LOG_PREFIX.length();
 	private static final int MAX_LOG_TAG_LENGTH = 23;
+
 
 	public static String makeLogTag(String str) {
 		if (str.length() > MAX_LOG_TAG_LENGTH - LOG_PREFIX_LENGTH) {
@@ -41,65 +29,101 @@ public class Utils {
 		return LOG_PREFIX + str;
 	}
 
-	/**
-	 * Don't use this when obfuscating class names!
-	 */
 	public static String makeLogTag(Class cls) {
 		return makeLogTag(cls.getSimpleName());
 	}
 
-	public static void LOGD(final String tag, String message) {
-		//noinspection PointlessBooleanExpression,ConstantConditions
-		if (BuildConfig.DEBUG || Log.isLoggable(tag, Log.DEBUG)) {
-			Log.d(tag, message);
+	public static String getAuthKey(SharedPreferences preferences) {
+		final String username, password;
+		if ((username = preferences.getString("username", null)) != null &&
+				(password = preferences.getString("password", null)) != null) {
+			return username + ":" + password;
 		}
+		return null;
 	}
 
-	public static void LOGD(final String tag, String message, Throwable cause) {
-		//noinspection PointlessBooleanExpression,ConstantConditions
-		if (BuildConfig.DEBUG || Log.isLoggable(tag, Log.DEBUG)) {
-			Log.d(tag, message, cause);
+	public static JSONObject inputStreamToJSON(InputStream inputStream) {
+		try {
+			final String temp = inputStreamToBufferedString(inputStream);
+			if (temp == null) {
+				return null;
+			}
+			return new JSONObject(temp);
+		} catch (JSONException e) {
+			Log.e(TAG, "Exception", e);
 		}
+		return null;
 	}
 
-	public static void LOGV(final String tag, String message) {
-		//noinspection PointlessBooleanExpression,ConstantConditions
-		if (BuildConfig.DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
-			Log.v(tag, message);
+	public static JSONArray inputStreamToJSONArray(InputStream inputStream) {
+		try {
+			final String temp = inputStreamToBufferedString(inputStream);
+			if (temp == null) {
+				return null;
+			}
+			return new JSONArray(temp);
+		} catch (JSONException e) {
+			Log.e(TAG, "Exception", e);
 		}
+		return null;
 	}
 
-	public static void LOGV(final String tag, String message, Throwable cause) {
-		//noinspection PointlessBooleanExpression,ConstantConditions
-		if (BuildConfig.DEBUG && Log.isLoggable(tag, Log.VERBOSE)) {
-			Log.v(tag, message, cause);
+	private static String inputStreamToBufferedString(InputStream inputStream) {
+		try {
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+			final StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line).append("\n");
+			}
+			return sb.toString();
+		} catch (IOException e) {
+			Log.e(TAG, "Exception", e);
+		} finally {
+			try {
+				if (inputStream != null) {
+					inputStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+		return null;
 	}
 
-	public static void LOGI(final String tag, String message) {
-		Log.i(tag, message);
+	public static String inputStreamToString(InputStream inputStream) {
+		final Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A");
+		return s.hasNext() ? s.next() : null;
 	}
 
-	public static void LOGI(final String tag, String message, Throwable cause) {
-		Log.i(tag, message, cause);
+	public static String[] JSONArrayToStringArray(JSONArray array) throws JSONException {
+		final String[] generic = new String[array.length()];
+		for (int i = 0; i < generic.length; i++) {
+			generic[i] = array.getString(i);
+		}
+		return generic;
 	}
 
-	public static void LOGW(final String tag, String message) {
-		Log.w(tag, message);
+	public static boolean[] JSONArrayToBooleanArray(JSONArray array) throws JSONException {
+		final boolean[] generic = new boolean[array.length()];
+		for (int i = 0; i < generic.length; i++) {
+			generic[i] = array.getBoolean(i);
+		}
+		return generic;
 	}
 
-	public static void LOGW(final String tag, String message, Throwable cause) {
-		Log.w(tag, message, cause);
+	public static <T> String join(T[] array) {
+		return join(array, ", ");
 	}
 
-	public static void LOGE(final String tag, String message) {
-		Log.e(tag, message);
-	}
-
-	public static void LOGE(final String tag, String message, Throwable cause) {
-		Log.e(tag, message, cause);
-	}
-
-	private Utils() {
+	public static <T> String join(T[] array, String delim) {
+		final StringBuilder sb = new StringBuilder();
+		for (T t : array) {
+			if (sb.length() > 0) {
+				sb.append(delim);
+			}
+			sb.append(t);
+		}
+		return sb.toString();
 	}
 }

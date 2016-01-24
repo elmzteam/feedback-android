@@ -40,7 +40,7 @@ public class MenuAdapter extends AbstractLoadableAdapter<MenuAdapter.ViewHolder>
 			title = (TextView) container.findViewById(R.id.title);
 			description = (TextView) container.findViewById(R.id.description);
 			circle = (ImageView) container.findViewById(R.id.circle);
-			rating = (ProgressBar) itemView.findViewById(R.id.rating);
+			rating = (ProgressBar) itemView.findViewById(R.id.preference);
 		}
 	}
 
@@ -58,7 +58,7 @@ public class MenuAdapter extends AbstractLoadableAdapter<MenuAdapter.ViewHolder>
 	}
 
 	@Override
-	public void onBindViewHolder(ViewHolder viewHolder, int position) {
+	public void onBindViewHolder(ViewHolder viewHolder, final int position) {
 		if (isLoadable() && position == getItemCount() - 1) return;
 		final MenuEntry menuEntry = mMenuEntries.get(position);
 		viewHolder.title.setText(menuEntry.getName());
@@ -66,25 +66,29 @@ public class MenuAdapter extends AbstractLoadableAdapter<MenuAdapter.ViewHolder>
 		viewHolder.container.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				mListener.select(menuEntry);
+				mListener.select(menuEntry, position);
 			}
 		});
-		if (menuEntry.getRating() > 5) {
-			viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_up));
-			viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.green));
-		} else if (menuEntry.getRating() > 2) {
-			viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_mood));
-			viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.grey));
-		} else if (menuEntry.getRating() != 0){
-			viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_down));
-			viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.red));
-		} else {
-			viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_both));
-			viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.accent400));
+		switch (menuEntry.getRating()) {
+			case UP:
+				viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_up));
+				viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.green));
+				break;
+			case OK:
+				viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_mood));
+				viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.grey));
+				break;
+			case DOWN:
+				viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_down));
+				viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.red));
+				break;
+			case NONE:
+				viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_both));
+				viewHolder.circle.setImageTintList(ContextCompat.getColorStateList(mContext, R.color.accent400));
 		}
 
 		// Rating bar
-		viewHolder.rating.setProgress((int) menuEntry.getRating() * 100);
+		viewHolder.rating.setProgress((int) menuEntry.getPreference() * 100);
 	}
 
 	@Override

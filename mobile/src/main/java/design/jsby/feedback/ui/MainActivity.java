@@ -10,14 +10,16 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -38,6 +40,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	private WebRequestReceiver mRequestReceiver;
 	private FallbackLocationTracker mLocationTracker;
 	private Display mActiveDisplay;
+	private FloatingActionButton mFab;
 
 	// Fragments
 	private NearbyFragment mNearbyFragment;
@@ -50,6 +53,15 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mFab = (FloatingActionButton) findViewById(R.id.fab);
+		mFab.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Snackbar.make(view, "Not implemented yet!", Snackbar.LENGTH_LONG)
+						.setAction("Sorry", null).show();
+			}
+		});
+
 		display(Display.NEARBY);
 		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
 				!= PackageManager.PERMISSION_GRANTED) {
@@ -64,15 +76,6 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				refresh();
 			}
 		}
-
-		final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-		fab.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				Snackbar.make(view, "Not implemented yet!", Snackbar.LENGTH_LONG)
-						.setAction("Sorry", null).show();
-			}
-		});
 
 		// Setup web request intent filter
 		final IntentFilter filter = new IntentFilter();
@@ -176,8 +179,8 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	private void display(Display display) {
 		mActiveDisplay = display;
 		invalidateOptionsMenu();
-		final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		final AppBarLayout.LayoutParams params = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
+		final CollapsingToolbarLayout toolbar = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
+		final CoordinatorLayout.LayoutParams p = (CoordinatorLayout.LayoutParams) mFab.getLayoutParams();
 		switch (display) {
 			case NEARBY:
 				if (mNearbyFragment == null) {
@@ -186,10 +189,12 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				getSupportFragmentManager().beginTransaction()
 						.replace(R.id.container, mNearbyFragment)
 						.commit();
-				setTitle(getResources().getString(R.string.title_nearby));
-				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
-				params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
-				toolbar.setLayoutParams(params);
+				toolbar.setTitle(getResources().getString(R.string.title_nearby));
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(false);
+				p.setAnchorId(View.NO_ID);
+				p.gravity = Gravity.BOTTOM | Gravity.END;
+				mFab.setLayoutParams(p);
+				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_explore));
 				break;
 			case LOGIN:
 				break;
@@ -199,8 +204,10 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 						.addToBackStack(null)
 						.commit();
 				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
-				params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
-				toolbar.setLayoutParams(params);
+				p.setAnchorId(R.id.toolbar_layout);
+				p.gravity = Gravity.NO_GRAVITY;
+				mFab.setLayoutParams(p);
+				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_send));
 		}
 	}
 
@@ -238,7 +245,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				mRestaurantMenuFragment.setArgRestaurant(restaurant);
 			}
 			display(Display.MENU);
-			setTitle(restaurant.getName());
+			((CollapsingToolbarLayout) findViewById(R.id.toolbar_layout)).setTitle(restaurant.getName());
 			// Send request
 			final Intent webRequest = new Intent(WebRequestService.ACTION_LOAD_MENU, null, this, WebRequestService.class);
 			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_UPDATE_MENU);
@@ -247,24 +254,45 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 		}
 	}
 
-	public void select(final MenuEntry entry) {
+	public void select(final MenuEntry entry, final int position) {
 		new BottomSheet.Builder(this)
 				.title("Rate this meal")
 				.sheet(R.menu.sheet_rating)
 				.grid()
 				.listener(new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch (which) {
-					case R.id.vote_down:
-						break;
-					case R.id.vote_neutral:
-						break;
-					case R.id.vote_up:
-						break;
-				}
-			}
-		}).show();
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						final MenuEntry.Rating rating;
+						switch (which) {
+							case R.id.vote_down:
+								rating = MenuEntry.Rating.DOWN;
+								break;
+							case R.id.vote_neutral:
+								rating = MenuEntry.Rating.OK;
+								break;
+							case R.id.vote_up:
+								rating = MenuEntry.Rating.UP;
+								break;
+							default:
+								return;
+						}
+						if (entry.getRating() != rating) {
+							entry.setRating(rating);
+							mRestaurantMenuFragment.update(position);
+							sendRating(entry, rating);
+						}
+					}
+				}).show();
+	}
+
+	private void sendRating(MenuEntry entry, MenuEntry.Rating rating) {
+		// Send request
+		final Intent webRequest = new Intent(WebRequestService.ACTION_PUT_RATING, null, this, WebRequestService.class);
+		webRequest.putExtra(WebRequestService.EXTRA_URL, API.putRating());
+		webRequest.putExtra(WebRequestService.EXTRA_RATING, (rating.ordinal() - 1f) / 2);
+		webRequest.putExtra(WebRequestService.EXTRA_ENTRY_ID, entry.getId());
+		webRequest.putExtra(WebRequestService.EXTRA_RESTAURANT_ID, mRestaurantMenuFragment.getRestaurant().getId());
+		startService(webRequest);
 	}
 
 	public class WebRequestReceiver extends BroadcastReceiver {

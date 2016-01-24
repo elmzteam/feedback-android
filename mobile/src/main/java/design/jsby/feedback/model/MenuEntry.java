@@ -5,30 +5,37 @@ import android.os.Parcelable;
 
 public class MenuEntry implements Parcelable {
 	private String name;
-	private float rating;
+	private float preference;
 	private String description;
 	private String id;
+	private Rating rating;
+	public enum Rating {
+		NONE, DOWN, OK, UP;
+		public static final Rating[] ratings = values();
+	}
 
-	public MenuEntry(String name, float rating, String description, String id) {
+	public MenuEntry(String name, float preference, String description, String id, Rating rating) {
 		this.name = name;
-		this.rating = rating;
+		this.preference = preference;
 		this.description = description;
 		this.id = id;
+		this.rating = rating;
 	}
 
 	public static class Builder {
 		private String name;
-		private float rating;
+		private float preference;
 		private String description;
 		private String id;
+		private Rating rating;
 
 		public Builder name(String s) {
 			name = s;
 			return this;
 		}
 
-		public Builder rating(float s) {
-			rating = s;
+		public Builder preference(float f) {
+			preference = f;
 			return this;
 		}
 
@@ -42,8 +49,13 @@ public class MenuEntry implements Parcelable {
 			return this;
 		}
 
+		public Builder rating(int i) {
+			rating = Rating.ratings[i];
+			return this;
+		}
+
 		public MenuEntry build() {
-			return new MenuEntry(name, rating, description, id);
+			return new MenuEntry(name, preference, description, id, rating);
 		}
 	}
 
@@ -51,8 +63,8 @@ public class MenuEntry implements Parcelable {
 		return name;
 	}
 
-	public float getRating() {
-		return rating;
+	public float getPreference() {
+		return preference;
 	}
 
 	public String getDescription() {
@@ -63,11 +75,20 @@ public class MenuEntry implements Parcelable {
 		return id;
 	}
 
+	public Rating getRating() {
+		return rating;
+	}
+
+	public void setRating(Rating r) {
+		rating = r;
+	}
+
 	protected MenuEntry(Parcel in) {
 		name = in.readString();
-		rating = in.readFloat();
+		preference = in.readFloat();
 		description = in.readString();
 		id = in.readString();
+		rating = Rating.ratings[in.readInt()];
 	}
 
 	@Override
@@ -78,9 +99,10 @@ public class MenuEntry implements Parcelable {
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(name);
-		dest.writeFloat(rating);
+		dest.writeFloat(preference);
 		dest.writeString(description);
 		dest.writeString(id);
+		dest.writeInt(rating.ordinal());
 	}
 
 	public static final Parcelable.Creator<MenuEntry> CREATOR = new Parcelable.Creator<MenuEntry>() {

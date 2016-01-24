@@ -30,7 +30,7 @@ public class RestaurantMenuFragment extends Fragment {
 	public interface OnFragmentInteractionListener {
 		// TODO: make this something useful
 		void select(Restaurant restaurant);
-		void select(MenuEntry entry);
+		void select(MenuEntry entry, int position);
 	}
 
 	// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -147,5 +147,13 @@ public class RestaurantMenuFragment extends Fragment {
 
 	void setRefreshing(boolean refreshing) {
 		mSwipeRefreshLayout.setRefreshing(refreshing);
+	}
+
+	void update(int position) {
+		mAdapter.notifyItemChanged(position);
+	}
+
+	Restaurant getRestaurant() {
+		return mRestaurant;
 	}
 }

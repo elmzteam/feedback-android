@@ -28,11 +28,16 @@ public class MenuHandler {
 	}
 
 	private static MenuEntry parse(JSONObject obj) throws JSONException, ParseException {
+		int rating = 0;
+		if (obj.has("rating")) {
+			rating = 1 + (int) (obj.getDouble("rating") * 2);
+		}
 		return new MenuEntry.Builder()
 				.name(obj.getString("name"))
 				.description(Utils.join(Utils.JSONArrayToStringArray(obj.getJSONArray("description"))))
-				.rating((float) obj.getDouble("preference"))
+				.preference((float) obj.getDouble("preference"))
 				.id(obj.getString("_id"))
+				.rating(rating)
 				.build();
 	}
 }

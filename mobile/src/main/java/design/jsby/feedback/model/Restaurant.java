@@ -19,7 +19,7 @@ public class Restaurant implements Parcelable {
 		this.categories = categories;
 		this.address = address;
 		this.id = id;
-//		this.rating = rating;
+//		this.preference = preference;
 //		this.price = price;
 	}
 

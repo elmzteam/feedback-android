@@ -6,11 +6,13 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 import design.jsby.feedback.parser.MenuHandler;
 import design.jsby.feedback.parser.RestaurantHandler;
+import design.jsby.feedback.util.API;
 import design.jsby.feedback.util.Utils;
 
 public class WebRequestService extends IntentService {
@@ -19,8 +21,16 @@ public class WebRequestService extends IntentService {
 			"design.jsby.feedback.action.LOAD_NEARBY";
 	public static final String ACTION_LOAD_MENU =
 			"design.jsby.feedback.action.LOAD_MENU";
+	public static final String ACTION_PUT_RATING =
+			"design.jsby.feedback.action.PUT_RATING";
 	public static final String EXTRA_URL =
 			"design.jsby.feedback.extra.URL";
+	public static final String EXTRA_RATING =
+			"design.jsby.feedback.extra.RATING";
+	public static final String EXTRA_ENTRY_ID =
+			"design.jsby.feedback.extra.ENTRY_ID";
+	public static final String EXTRA_RESTAURANT_ID =
+			"design.jsby.feedback.extra.RESTAURANT_ID";
 	public static final String EXTRA_OUT = "output";
 
 	public WebRequestService() {
@@ -55,6 +65,20 @@ public class WebRequestService extends IntentService {
 				case ACTION_LOAD_MENU:
 					urlConnection.connect();
 					broadcastIntent.putExtra(EXTRA_OUT, MenuHandler.parseAll(urlConnection.getInputStream()));
+					break;
+				case ACTION_PUT_RATING:
+					urlConnection.setRequestMethod("PUT");
+					urlConnection.setDoOutput(true);
+					urlConnection.setRequestProperty("Content-Type", "application/json");
+					urlConnection.setRequestProperty("Accept", "application/json");
+					final OutputStreamWriter out = new OutputStreamWriter(urlConnection.getOutputStream());
+					out.write(API.putRating(intent.getFloatExtra(EXTRA_RATING, 0.5f),
+							intent.getStringExtra(EXTRA_ENTRY_ID),
+							intent.getStringExtra(EXTRA_RESTAURANT_ID)).toString());
+					out.flush();
+					out.close();
+					urlConnection.getResponseCode();
+					return;
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "IO", e);

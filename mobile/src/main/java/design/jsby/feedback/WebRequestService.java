@@ -23,6 +23,8 @@ public class WebRequestService extends IntentService {
 			"design.jsby.feedback.action.LOAD_MENU";
 	public static final String ACTION_PUT_RATING =
 			"design.jsby.feedback.action.PUT_RATING";
+	public static final String ACTION_POST_MENU =
+			"design.jsby.feedback.action.POST_MENU";
 	public static final String EXTRA_URL =
 			"design.jsby.feedback.extra.URL";
 	public static final String EXTRA_RATING =
@@ -31,6 +33,8 @@ public class WebRequestService extends IntentService {
 			"design.jsby.feedback.extra.ENTRY_ID";
 	public static final String EXTRA_RESTAURANT_ID =
 			"design.jsby.feedback.extra.RESTAURANT_ID";
+	public static final String EXTRA_ITEM_NAME =
+			"design.jsby.feedback.extra.ITEM_NAME";
 	public static final String EXTRA_OUT = "output";
 
 	public WebRequestService() {
@@ -65,6 +69,15 @@ public class WebRequestService extends IntentService {
 				case ACTION_LOAD_MENU:
 					urlConnection.connect();
 					broadcastIntent.putExtra(EXTRA_OUT, MenuHandler.parseAll(urlConnection.getInputStream()));
+					break;
+				case ACTION_POST_MENU:
+					urlConnection.setRequestMethod("POST");
+					urlConnection.setDoOutput(true);
+					final OutputStreamWriter o = new OutputStreamWriter(urlConnection.getOutputStream());
+					o.write(API.postMenu(intent.getStringExtra(EXTRA_ITEM_NAME), intent.getStringExtra(EXTRA_RESTAURANT_ID)));
+					o.flush();
+					o.close();
+					urlConnection.getResponseCode();
 					break;
 				case ACTION_PUT_RATING:
 					urlConnection.setRequestMethod("PUT");

@@ -3,6 +3,7 @@
 	<string name="google_app_id">270216815010</string>
 
 	<string name="title_nearby">Nearby</string>
+	<string name="title_submit">Share a new menu item</string>
 
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>
@@ -15,5 +16,7 @@
 	<string name="vote_down">No good</string>
 
 	<string name="card_addition">Add menu item</string>
+
 	<string name="action_add">Add</string>
+	<string name="action_submit">Submit</string>
 </resources>

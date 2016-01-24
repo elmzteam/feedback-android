@@ -19,7 +19,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -45,19 +44,22 @@ import design.jsby.feedback.util.FallbackLocationTracker;
 import design.jsby.feedback.util.Utils;
 
 public class MainActivity extends DrawerActivity implements NearbyFragment.OnFragmentInteractionListener,
-		RestaurantMenuFragment.OnFragmentInteractionListener {
+		RestaurantMenuFragment.OnFragmentInteractionListener,
+		SubmitFragment.OnFragmentInteractionListener {
 	private static final String TAG = Utils.makeLogTag(MainActivity.class);
 	private WebRequestReceiver mRequestReceiver;
 	private FallbackLocationTracker mLocationTracker;
 	private Display mActiveDisplay;
 	private FloatingActionButton mFab;
+	private int mPrevCount;
 
 	// Fragments
 	private NearbyFragment mNearbyFragment;
 	private RestaurantMenuFragment mRestaurantMenuFragment;
+	private SubmitFragment mSubmitFragment;
 
 	private enum Display {
-		NEARBY, LOGIN, MENU
+		NEARBY, LOGIN, MENU, SUBMIT
 	}
 
 	@Override
@@ -67,12 +69,16 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 		mFab.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Snackbar.make(view, "Not implemented yet!", Snackbar.LENGTH_LONG)
-						.setAction("Sorry", null).show();
+				if (mActiveDisplay == Display.MENU) {
+					switchTo(Display.SUBMIT);
+				} else {
+					Snackbar.make(view, "Not implemented yet!", Snackbar.LENGTH_LONG)
+							.setAction("Sorry", null).show();
+				}
 			}
 		});
 
-		display(Display.NEARBY);
+		switchTo(Display.NEARBY);
 		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
 				!= PackageManager.PERMISSION_GRANTED) {
 			ActivityCompat.requestPermissions(this, new String[]{
@@ -92,6 +98,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 		filter.addAction(WebRequestReceiver.ACTION_UPDATE_NEARBY);
 		filter.addAction(WebRequestReceiver.ACTION_ADD_NEARBY);
 		filter.addAction(WebRequestReceiver.ACTION_UPDATE_MENU);
+		filter.addAction(WebRequestReceiver.ACTION_NAV_BACK);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mRequestReceiver = new WebRequestReceiver();
 		registerReceiver(mRequestReceiver, filter);
@@ -100,20 +107,22 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 			public void onBackStackChanged() {
 				final FragmentManager manager = getSupportFragmentManager();
 				final int count = manager.getBackStackEntryCount();
-				if (count == 0) {
-					setDrawerIndicatorEnabled(true);
+				// Popping
+				if (count < mPrevCount) {
 					switch (mActiveDisplay) {
 						case MENU:
+							setDrawerIndicatorEnabled(true);
 							mActiveDisplay = Display.NEARBY;
+							break;
+						case SUBMIT:
+							mActiveDisplay = Display.MENU;
 							break;
 					}
 					display(mActiveDisplay);
+					mPrevCount--;
 					return;
 				}
 				setDrawerIndicatorEnabled(false);
-				final Fragment fragment = manager.getFragments().get(count - 1);
-				switch (mActiveDisplay) {
-				}
 			}
 		});
 	}
@@ -126,13 +135,14 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 
 	@Override
 	public boolean onPrepareOptionsMenu(final Menu menu) {
-		MenuItem select = menu.findItem(R.id.action_add);
+		MenuItem submit = menu.findItem(R.id.action_submit);
 		switch(mActiveDisplay) {
-			case MENU:
-				select.setEnabled(true).setVisible(true);
+			case SUBMIT:
+				submit.setEnabled(true).setVisible(true);
 				break;
+			case MENU:
 			case NEARBY:
-				select.setEnabled(false).setVisible(false);
+				submit.setEnabled(false).setVisible(false);
 				break;
 		}
 		return super.onPrepareOptionsMenu(menu);
@@ -142,7 +152,9 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-			case R.id.action_add:
+			case R.id.action_submit:
+				// TODO: submit?
+				submit();
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
@@ -156,7 +168,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 		switch (item.getItemId()) {
 			case R.id.nav_nearby:
 				if (mActiveDisplay != Display.NEARBY) {
-					display(Display.NEARBY);
+					switchTo(Display.NEARBY);
 				}
 				break;
 			case R.id.nav_settings:
@@ -219,11 +231,8 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 		}
 	}
 
-	private void display(Display display) {
-		mActiveDisplay = display;
+	private void switchTo(Display display) {
 		invalidateOptionsMenu();
-		final CollapsingToolbarLayout toolbar = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
-		final CoordinatorLayout.LayoutParams p = (CoordinatorLayout.LayoutParams) mFab.getLayoutParams();
 		switch (display) {
 			case NEARBY:
 				if (mNearbyFragment == null) {
@@ -232,26 +241,69 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				getSupportFragmentManager().beginTransaction()
 						.replace(R.id.container, mNearbyFragment)
 						.commit();
-				toolbar.setTitle(getResources().getString(R.string.title_nearby));
-				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(false);
-				p.setAnchorId(View.NO_ID);
-				p.gravity = Gravity.BOTTOM | Gravity.END;
-				mFab.setLayoutParams(p);
-				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_explore));
-				break;
-			case LOGIN:
+				mPrevCount = 0;
 				break;
 			case MENU:
 				getSupportFragmentManager().beginTransaction()
 						.replace(R.id.container, mRestaurantMenuFragment)
 						.addToBackStack(null)
 						.commit();
-				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
-				p.setAnchorId(R.id.toolbar_layout);
-				p.gravity = Gravity.NO_GRAVITY;
-				mFab.setLayoutParams(p);
-				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_send));
+				mPrevCount = 1;
+				break;
+			case SUBMIT:
+				if (mSubmitFragment == null) {
+					mSubmitFragment = new SubmitFragment();
+				}
+				getSupportFragmentManager().beginTransaction()
+						.replace(R.id.container, mSubmitFragment)
+						.addToBackStack(null)
+						.commit();
+				mPrevCount = 2;
+				break;
 		}
+		display(display);
+	}
+
+	private void display(Display display) {
+		mActiveDisplay = display;
+		final CollapsingToolbarLayout toolbar = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
+		final CoordinatorLayout.LayoutParams fabParams = (CoordinatorLayout.LayoutParams) mFab.getLayoutParams();
+		switch (display) {
+			case NEARBY:
+				toolbar.setTitle(getResources().getString(R.string.title_nearby));
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(false);
+				fabParams.setAnchorId(View.NO_ID);
+				fabParams.gravity = Gravity.BOTTOM | Gravity.END;
+				mFab.setLayoutParams(fabParams);
+				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_explore));
+				mFab.setVisibility(View.VISIBLE);
+				break;
+			case LOGIN:
+				break;
+			case MENU:
+				toolbar.setTitle(mRestaurantMenuFragment.getRestaurant().getName());
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
+				fabParams.setAnchorId(R.id.toolbar_layout);
+				fabParams.gravity = Gravity.NO_GRAVITY;
+				mFab.setLayoutParams(fabParams);
+				mFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_add));
+				mFab.setVisibility(View.VISIBLE);
+				break;
+			case SUBMIT:
+				toolbar.setTitle(getResources().getString(R.string.title_submit));
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(false);
+				mFab.setVisibility(View.GONE);
+				break;
+		}
+	}
+
+	public void submit() {
+		final Intent webRequest = new Intent(WebRequestService.ACTION_POST_MENU, null, this, WebRequestService.class);
+		webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_NAV_BACK);
+		webRequest.putExtra(WebRequestService.EXTRA_URL, API.postMenu());
+		webRequest.putExtra(WebRequestService.EXTRA_RESTAURANT_ID, mRestaurantMenuFragment.getRestaurant().getId());
+		webRequest.putExtra(WebRequestService.EXTRA_ITEM_NAME, mSubmitFragment.getCaption());
+		startService(webRequest);
 	}
 
 	public void refresh() {
@@ -287,8 +339,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 			} else {
 				mRestaurantMenuFragment.setArgRestaurant(restaurant);
 			}
-			display(Display.MENU);
-			((CollapsingToolbarLayout) findViewById(R.id.toolbar_layout)).setTitle(restaurant.getName());
+			switchTo(Display.MENU);
 			// Send request
 			final Intent webRequest = new Intent(WebRequestService.ACTION_LOAD_MENU, null, this, WebRequestService.class);
 			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_UPDATE_MENU);
@@ -381,6 +432,8 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				"design.jsby.feedback.action.ADD_NEARBY";
 		public static final String ACTION_UPDATE_MENU =
 				"design.jsby.feedback.action.UPDATE_MENU";
+		public static final String ACTION_NAV_BACK =
+				"design.jsby.feedback.action.NAV_BACK";
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -409,6 +462,9 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				case ACTION_UPDATE_MENU:
 					mRestaurantMenuFragment.update(Utils.parcelableArrayToTypedArray(
 							intent.getParcelableArrayExtra(WebRequestService.EXTRA_OUT), MenuEntry[].class));
+					break;
+				case ACTION_NAV_BACK:
+					onBackPressed();
 					break;
 			}
 		}

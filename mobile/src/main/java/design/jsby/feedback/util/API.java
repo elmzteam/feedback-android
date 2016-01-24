@@ -15,6 +15,7 @@ public final class API {
 	private static String NEARBY = BASE_URL + "/restaurants";
 	private static String MENU = BASE_URL + "/items";
 	private static String RATING = BASE_URL + "/rating";
+	private static String SUBMIT = BASE_URL + "/item";
 
 	public static URL getNearby(Location location, int startIndex) {
 		try {
@@ -43,10 +44,23 @@ public final class API {
 		}
 	}
 
+	public static URL postMenu() {
+		try {
+			return new URL(SUBMIT);
+		} catch (MalformedURLException e) {
+			Log.e(TAG, "Bad URL", e);
+			return null;
+		}
+	}
+
 	public static JSONObject putRating(float rating, String entryId, String restaurantId) throws JSONException {
 		return new JSONObject()
 				.put("item", entryId)
 				.put("rating", rating)
 				.put("restaurant", restaurantId);
+	}
+
+	public static String postMenu(String name, String restaurantId) {
+		return "name=" + name + "&restaurant=" + restaurantId;
 	}
 }

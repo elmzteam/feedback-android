@@ -154,6 +154,6 @@ public class RestaurantMenuFragment extends Fragment {
 	}
 
 	Restaurant getRestaurant() {
-		return mRestaurant;
+		return getArguments().getParcelable(ARG_RESTAURANT);
 	}
 }

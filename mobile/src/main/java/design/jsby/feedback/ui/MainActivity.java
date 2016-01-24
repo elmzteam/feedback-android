@@ -72,7 +72,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				if (mActiveDisplay == Display.MENU) {
 					switchTo(Display.SUBMIT);
 				} else {
-					Snackbar.make(view, "Not implemented yet!", Snackbar.LENGTH_LONG)
+					Snackbar.make(view, "Explore the best restaurants around!", Snackbar.LENGTH_LONG)
 							.setAction("Sorry", null).show();
 				}
 			}
@@ -232,7 +232,6 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	}
 
 	private void switchTo(Display display) {
-		invalidateOptionsMenu();
 		switch (display) {
 			case NEARBY:
 				if (mNearbyFragment == null) {
@@ -265,6 +264,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	}
 
 	private void display(Display display) {
+		invalidateOptionsMenu();
 		mActiveDisplay = display;
 		final CollapsingToolbarLayout toolbar = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
 		final CoordinatorLayout.LayoutParams fabParams = (CoordinatorLayout.LayoutParams) mFab.getLayoutParams();
@@ -377,6 +377,18 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 						}
 					}
 				}).show();
+	}
+
+	public void select(final MenuEntry entry) {
+		BottomSheet sheet = new BottomSheet.Builder(this)
+				.title(entry.getName())
+				.build();
+		Menu menu = sheet.getMenu();
+		int i = 0;
+		for (String s : entry.getDescriptionArray()) {
+			menu.add(Menu.NONE, i++, Menu.NONE, s);
+		}
+		sheet.show();
 	}
 
 	private void sendRating(MenuEntry entry, MenuEntry.Rating rating) {

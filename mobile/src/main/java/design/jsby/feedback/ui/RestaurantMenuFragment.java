@@ -31,6 +31,7 @@ public class RestaurantMenuFragment extends Fragment {
 		// TODO: make this something useful
 		void select(Restaurant restaurant);
 		void select(MenuEntry entry, int position);
+		void select(MenuEntry entry);
 	}
 
 	// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

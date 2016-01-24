@@ -69,6 +69,12 @@ public class MenuAdapter extends AbstractLoadableAdapter<MenuAdapter.ViewHolder>
 				mListener.select(menuEntry, position);
 			}
 		});
+		viewHolder.container.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				mListener.select(menuEntry);
+			}
+		});
 		switch (menuEntry.getRating()) {
 			case UP:
 				viewHolder.circle.setForeground(ContextCompat.getDrawable(mContext, R.drawable.ic_thumb_up));

@@ -3,10 +3,12 @@ package design.jsby.feedback.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import design.jsby.feedback.util.Utils;
+
 public class MenuEntry implements Parcelable {
 	private String name;
 	private float preference;
-	private String description;
+	private String[] description;
 	private String id;
 	private Rating rating;
 	public enum Rating {
@@ -14,7 +16,7 @@ public class MenuEntry implements Parcelable {
 		public static final Rating[] ratings = values();
 	}
 
-	public MenuEntry(String name, float preference, String description, String id, Rating rating) {
+	public MenuEntry(String name, float preference, String[] description, String id, Rating rating) {
 		this.name = name;
 		this.preference = preference;
 		this.description = description;
@@ -25,7 +27,7 @@ public class MenuEntry implements Parcelable {
 	public static class Builder {
 		private String name;
 		private float preference;
-		private String description;
+		private String[] description;
 		private String id;
 		private Rating rating;
 
@@ -39,7 +41,7 @@ public class MenuEntry implements Parcelable {
 			return this;
 		}
 
-		public Builder description(String s) {
+		public Builder description(String[] s) {
 			description = s;
 			return this;
 		}
@@ -68,6 +70,10 @@ public class MenuEntry implements Parcelable {
 	}
 
 	public String getDescription() {
+		return Utils.join(description);
+	}
+
+	public String[] getDescriptionArray() {
 		return description;
 	}
 
@@ -86,7 +92,7 @@ public class MenuEntry implements Parcelable {
 	protected MenuEntry(Parcel in) {
 		name = in.readString();
 		preference = in.readFloat();
-		description = in.readString();
+		description = in.createStringArray();
 		id = in.readString();
 		rating = Rating.ratings[in.readInt()];
 	}
@@ -100,7 +106,7 @@ public class MenuEntry implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(name);
 		dest.writeFloat(preference);
-		dest.writeString(description);
+		dest.writeStringArray(description);
 		dest.writeString(id);
 		dest.writeInt(rating.ordinal());
 	}

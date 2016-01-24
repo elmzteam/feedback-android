@@ -34,7 +34,7 @@ public class MenuHandler {
 		}
 		return new MenuEntry.Builder()
 				.name(obj.getString("name"))
-				.description(Utils.join(Utils.JSONArrayToStringArray(obj.getJSONArray("description"))))
+				.description(Utils.JSONArrayToStringArray(obj.getJSONArray("description")))
 				.preference((float) obj.getDouble("preference"))
 				.id(obj.getString("_id"))
 				.rating(rating)

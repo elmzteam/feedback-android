@@ -45,7 +45,7 @@
 			android:layout_height="wrap_content"
 			android:layout_below="@id/categories"
 			android:layout_toStartOf="@+id/distance"
-			android:layout_marginTop="8dp"
+			android:layout_marginTop="16dp"
 			android:paddingLeft="16dp"
 			android:paddingRight="16dp"
 			android:singleLine="true"

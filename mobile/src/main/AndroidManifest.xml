@@ -3,6 +3,8 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-permission android:name="android.permission.WAKE_LOCK"/>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 	<application
 		android:allowBackup="true"
@@ -15,17 +17,17 @@
 			android:value="GlideModule"/>
 		<activity
 			android:name=".ui.MainActivity"
-			android:label="@string/label_nearby"
+			android:label="@string/app_name"
 			android:theme="@style/AppTheme.NoActionBar">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
 
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
-			<service
-				android:enabled="true"
-				android:name=".WebRequestService" />
 		</activity>
+		<service
+			android:enabled="true"
+			android:name=".WebRequestService" />
 	</application>
 
 </manifest>

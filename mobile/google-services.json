@@ -1,0 +1,51 @@
+{
+  "project_info": {
+    "project_id": "feedback-2c867",
+    "project_number": "270216815010",
+    "name": "Feedback"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270216815010:android:a838db506c5244f3",
+        "client_id": "android:design.jsby.feedback",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "design.jsby.feedback"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "270216815010-hrmlgl77cn4foiifaev24qn3kplstk2u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "design.jsby.feedback",
+            "certificate_hash": "AF831EC9F8F298CE4548A23ACC5E271781E48707"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

@@ -21,8 +21,6 @@ import design.jsby.feedback.model.Restaurant;
  * Activities that contain this fragment must implement the
  * {@link NearbyFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link NearbyFragment#newInstance} factory method to
- * create an instance of this fragment.
  */
 public class NearbyFragment extends Fragment {
 	public interface OnFragmentInteractionListener {
@@ -30,35 +28,12 @@ public class NearbyFragment extends Fragment {
 		void select(Restaurant restaurant);
 	}
 
-	// TODO: Rename parameter arguments, choose names that match
-	private static final String ARG_PARAM1 = "param1";
-	private static final String ARG_PARAM2 = "param2";
-
 	private RestaurantAdapter mAdapter;
 	private LinearLayoutManager mLayoutManager;
 	private SwipeRefreshLayout mSwipeRefreshLayout;
-	private String mParam1;
-	private String mParam2;
+	private RecyclerView mRecyclerView;
 
 	private OnFragmentInteractionListener mListener;
-
-	/**
-	 * Use this factory method to create a new instance of
-	 * this fragment using the provided parameters.
-	 *
-	 * @param param1 Parameter 1.
-	 * @param param2 Parameter 2.
-	 * @return A new instance of fragment BibleBooksFragment.
-	 */
-	// TODO: Rename and change types and number of parameters
-	public static NearbyFragment newInstance(String param1, String param2) {
-		NearbyFragment fragment = new NearbyFragment();
-		Bundle args = new Bundle();
-		args.putString(ARG_PARAM1, param1);
-		args.putString(ARG_PARAM2, param2);
-		fragment.setArguments(args);
-		return fragment;
-	}
 
 	public NearbyFragment() {
 		// Required empty public constructor
@@ -67,10 +42,6 @@ public class NearbyFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (getArguments() != null) {
-			mParam1 = getArguments().getString(ARG_PARAM1);
-			mParam2 = getArguments().getString(ARG_PARAM2);
-		}
 		mAdapter = new RestaurantAdapter(getActivity());
 	}
 
@@ -87,14 +58,14 @@ public class NearbyFragment extends Fragment {
 				mListener.refresh();
 			}
 		});
-		mSwipeRefreshLayout.setColorSchemeResources(R.color.blue);
+		mSwipeRefreshLayout.setColorSchemeResources(R.color.accent400);
 
-		final RecyclerView newsList = (RecyclerView) rootView.findViewById(R.id.list);
+		mRecyclerView = (RecyclerView) rootView.findViewById(R.id.list);
 		mLayoutManager = new LinearLayoutManager(inflater.getContext());
-		newsList.addItemDecoration(new CardDecoration());
-		newsList.setLayoutManager(mLayoutManager);
-		newsList.setItemAnimator(new DefaultItemAnimator());
-		newsList.setAdapter(mAdapter);
+		mRecyclerView.addItemDecoration(new CardDecoration());
+		mRecyclerView.setLayoutManager(mLayoutManager);
+		mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+		mRecyclerView.setAdapter(mAdapter);
 
 		return rootView;
 	}
@@ -118,9 +89,15 @@ public class NearbyFragment extends Fragment {
 
 	public void update(Restaurant[] restaurants) {
 		mAdapter.update(restaurants);
+		mSwipeRefreshLayout.setRefreshing(false);
+		mRecyclerView.scrollToPosition(0); // Prevent scrolling to bottom
 	}
 
 	public void addAll(Restaurant[] restaurants) {
 		mAdapter.addAll(restaurants);
+	}
+
+	public void setRefreshing(boolean refreshing) {
+		mSwipeRefreshLayout.setRefreshing(refreshing);
 	}
 }

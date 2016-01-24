@@ -1,7 +1,8 @@
 <resources>
 	<string name="app_name">Feedback</string>
+	<string name="google_app_id">270216815010</string>
 
-	<string name="label_nearby">Nearby</string>
+	<string name="title_nearby">Nearby</string>
 
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>

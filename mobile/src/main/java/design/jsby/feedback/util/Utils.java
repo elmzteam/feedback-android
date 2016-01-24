@@ -1,6 +1,7 @@
 package design.jsby.feedback.util;
 
 import android.content.SharedPreferences;
+import android.os.Parcelable;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Utils {
@@ -125,5 +127,12 @@ public class Utils {
 			sb.append(t);
 		}
 		return sb.toString();
+	}
+
+	public static <T> T[] parcelableArrayToTypedArray(Parcelable[] parcelables, Class<? extends T[]> newType) {
+		if (parcelables == null) {
+			return null;
+		}
+		return Arrays.copyOf(parcelables, parcelables.length, newType);
 	}
 }

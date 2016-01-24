@@ -7,25 +7,30 @@ public class Restaurant implements Parcelable {
 	private String name;
 	private String address;
 	private float distance;
-	private int rating;
-	private int price;
+	private String categories;
+	private String[] images;
 	private MenuEntry[] entries;
+//	private int rating;
+//	private int price;
 
-	public Restaurant(String name, float distance, int rating, int price) {
+	public Restaurant(String name, float distance, String categories, String address, String[] images) {
 		this.name = name;
 		this.distance = distance;
-		this.rating = rating;
-		this.price = price;
+		this.images = images;
+		this.categories = categories;
+		this.address = address;
+//		this.rating = rating;
+//		this.price = price;
 	}
 
 	public static class Builder {
+		private String address;
+		private String categories;
 		private String name;
 		private float distance;
+		private String[] images;
 		private int rating;
 		private int price;
-
-		public Builder() {
-		}
 
 		public Builder name(String s) {
 			name = s;
@@ -47,8 +52,23 @@ public class Restaurant implements Parcelable {
 			return this;
 		}
 
+		public Builder categories(String s) {
+			categories = s;
+			return this;
+		}
+
+		public Builder address(String s) {
+			address = s;
+			return this;
+		}
+
+		public Builder images(String[] s) {
+			images = s;
+			return this;
+		}
+
 		public Restaurant build() {
-			return new Restaurant(name, distance, rating, price);
+			return new Restaurant(name, distance, categories, address, images);
 		}
 	}
 
@@ -64,6 +84,22 @@ public class Restaurant implements Parcelable {
 		return distance;
 	}
 
+	public String getCategories() {
+		return categories;
+	}
+
+	public String getImageURL(int index) {
+		return images[index];
+	}
+
+	public int getImageNum() {
+		return images.length;
+	}
+
+	public boolean hasImages() {
+		return images.length != 0;
+	}
+
 	public void setEntries(MenuEntry[] entries) {
 		this.entries = entries;
 	}
@@ -71,8 +107,9 @@ public class Restaurant implements Parcelable {
 	protected Restaurant(Parcel in) {
 		name = in.readString();
 		distance = in.readFloat();
-		rating = in.readInt();
-		price = in.readInt();
+		address = in.readString();
+		categories = in.readString();
+		images = in.createStringArray();
 		entries = (MenuEntry[]) in.readParcelableArray(MenuEntry.class.getClassLoader());
 	}
 
@@ -85,8 +122,9 @@ public class Restaurant implements Parcelable {
 	public void writeToParcel(Parcel dest, int flags) {
 		dest.writeString(name);
 		dest.writeFloat(distance);
-		dest.writeInt(rating);
-		dest.writeInt(price);
+		dest.writeString(address);
+		dest.writeString(categories);
+		dest.writeStringArray(images);
 		dest.writeParcelableArray(entries, 0);
 	}
 

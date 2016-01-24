@@ -68,6 +68,6 @@
 			android:textColor="@android:color/primary_text_light"
 			android:alpha=".54"
 			android:singleLine="true"
-			android:fontFamily="sans-serif-light"/>
+			android:fontFamily="roboto-light"/>
 	</RelativeLayout>
 </FrameLayout>

@@ -2,6 +2,7 @@ package design.jsby.feedback.adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -32,12 +33,16 @@ public class RestaurantAdapter extends AbstractLoadableAdapter<RestaurantAdapter
 		TextView title;
 		ImageView image;
 		TextView distance;
+		TextView address;
+		TextView categories;
 
 		public ViewHolder(View itemView) {
 			super(itemView);
 			card = (CardView) itemView.findViewById(R.id.card);
 			title = (TextView) itemView.findViewById(R.id.title);
+			address = (TextView) itemView.findViewById(R.id.address);
 			distance = (TextView) itemView.findViewById(R.id.distance);
+			categories = (TextView) itemView.findViewById(R.id.categories);
 			image = (ImageView) itemView.findViewById(R.id.image);
 		}
 	}
@@ -61,6 +66,8 @@ public class RestaurantAdapter extends AbstractLoadableAdapter<RestaurantAdapter
 
 		final Restaurant restaurant = mRestaurants.get(position);
 		viewHolder.title.setText(restaurant.getName());
+		viewHolder.categories.setText(restaurant.getCategories());
+		viewHolder.address.setText(restaurant.getAddress());
 		viewHolder.distance.setText(restaurant.getDistance() + "m");
 		if (restaurant.hasImages()) {
 			Glide.with(mContext)
@@ -68,9 +75,7 @@ public class RestaurantAdapter extends AbstractLoadableAdapter<RestaurantAdapter
 					.centerCrop()
 					.into(viewHolder.image);
 		} else {
-			Glide.with(mContext)
-					.load(R.drawable.ic_local_dining_white_48dp)
-					.into(viewHolder.image);
+			viewHolder.image.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.ic_local_dining));
 		}
 		viewHolder.card.setPreventCornerOverlap(false);
 		viewHolder.card.setOnClickListener(new View.OnClickListener() {

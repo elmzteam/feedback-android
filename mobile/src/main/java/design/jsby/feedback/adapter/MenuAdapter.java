@@ -63,7 +63,7 @@ public class MenuAdapter extends AbstractLoadableAdapter<MenuAdapter.ViewHolder>
 		final MenuEntry menuEntry = mMenuEntries.get(position);
 		viewHolder.title.setText(menuEntry.getName());
 		viewHolder.description.setText(menuEntry.getDescription());
-		viewHolder.container.setOnClickListener(new View.OnClickListener() {
+		viewHolder.circle.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				mListener.select(menuEntry, position);

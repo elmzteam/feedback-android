@@ -36,6 +36,7 @@ public class RestaurantHandler {
 				.categories(obj.getString("categories"))
 				.address(obj.getString("address"))
 				.images(Utils.JSONArrayToStringArray(obj.getJSONArray("images")))
+				.id(obj.getString("_id"))
 				.build();
 	}
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import design.jsby.feedback.parser.MenuHandler;
 import design.jsby.feedback.parser.RestaurantHandler;
 import design.jsby.feedback.util.Utils;
 
@@ -16,8 +17,8 @@ public class WebRequestService extends IntentService {
 	public static final String TAG = Utils.makeLogTag(WebRequestService.class);
 	public static final String ACTION_LOAD_NEARBY =
 			"design.jsby.feedback.action.LOAD_NEARBY";
-	public static final String EXTRA_RESTAURANTS =
-			"design.jsby.feedback.extra.RESTAURANTS";
+	public static final String ACTION_LOAD_MENU =
+			"design.jsby.feedback.action.LOAD_MENU";
 	public static final String EXTRA_URL =
 			"design.jsby.feedback.extra.URL";
 	public static final String EXTRA_OUT = "output";
@@ -42,15 +43,18 @@ public class WebRequestService extends IntentService {
 			// Add authKey to header
 			// TODO: use login
 			urlConnection.setRequestProperty("user", "test");
-			urlConnection.setRequestProperty("session", "0d3c1cff2889635bc9f4b731ac32e9458598dc99d459270c4d3f157cdf78df3b"); // TODO: change this field
+			// TODO: change this field
+			urlConnection.setRequestProperty("session", "0d3c1cff2889635bc9f4b731ac32e9458598dc99d459270c4d3f157cdf78df3b");
 			urlConnection.setUseCaches(false);
 
 			switch (intent.getAction()) {
 				case ACTION_LOAD_NEARBY:
 					urlConnection.connect();
-					broadcastIntent.setAction(intent.getStringExtra(EXTRA_OUT));
 					broadcastIntent.putExtra(EXTRA_OUT, RestaurantHandler.parseAll(urlConnection.getInputStream()));
 					break;
+				case ACTION_LOAD_MENU:
+					urlConnection.connect();
+					broadcastIntent.putExtra(EXTRA_OUT, MenuHandler.parseAll(urlConnection.getInputStream()));
 			}
 		} catch (Exception e) {
 			Log.e(TAG, "IO", e);

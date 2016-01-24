@@ -59,6 +59,9 @@ public class NearbyFragment extends Fragment {
 			}
 		});
 		mSwipeRefreshLayout.setColorSchemeResources(R.color.accent400);
+		if (mAdapter.size() == 0) {
+			mSwipeRefreshLayout.setEnabled(false); // TODO: make this a sane check
+		}
 
 		mRecyclerView = (RecyclerView) rootView.findViewById(R.id.list);
 		mLayoutManager = new LinearLayoutManager(inflater.getContext());
@@ -89,7 +92,7 @@ public class NearbyFragment extends Fragment {
 
 	public void update(Restaurant[] restaurants) {
 		mAdapter.update(restaurants);
-		mSwipeRefreshLayout.setRefreshing(false);
+		setRefreshing(false);
 		mRecyclerView.scrollToPosition(0); // Prevent scrolling to bottom
 	}
 
@@ -98,6 +101,7 @@ public class NearbyFragment extends Fragment {
 	}
 
 	public void setRefreshing(boolean refreshing) {
+		mSwipeRefreshLayout.setEnabled(true);
 		mSwipeRefreshLayout.setRefreshing(refreshing);
 	}
 }

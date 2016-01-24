@@ -3,6 +3,7 @@ package design.jsby.feedback.ui;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -20,22 +21,30 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.cocosw.bottomsheet.BottomSheet;
+
 import design.jsby.feedback.R;
 import design.jsby.feedback.WebRequestService;
+import design.jsby.feedback.model.MenuEntry;
 import design.jsby.feedback.model.Restaurant;
 import design.jsby.feedback.util.API;
 import design.jsby.feedback.util.DrawerActivity;
 import design.jsby.feedback.util.FallbackLocationTracker;
 import design.jsby.feedback.util.Utils;
 
-public class MainActivity extends DrawerActivity implements NearbyFragment.OnFragmentInteractionListener {
+public class MainActivity extends DrawerActivity implements NearbyFragment.OnFragmentInteractionListener,
+		RestaurantMenuFragment.OnFragmentInteractionListener {
 	private static final String TAG = Utils.makeLogTag(MainActivity.class);
-	private NearbyFragment mNearbyFragment;
 	private WebRequestReceiver mRequestReceiver;
 	private FallbackLocationTracker mLocationTracker;
 	private Display mActiveDisplay;
+
+	// Fragments
+	private NearbyFragment mNearbyFragment;
+	private RestaurantMenuFragment mRestaurantMenuFragment;
+
 	private enum Display {
-		NEARBY, LOGIN
+		NEARBY, LOGIN, MENU
 	}
 
 	@Override
@@ -51,7 +60,7 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 			mLocationTracker = null;
 		} else {
 			mLocationTracker = new FallbackLocationTracker(this);
-			if (mLocationTracker.hasLocation()) {
+			if (mLocationTracker.hasPossiblyStaleLocation()) {
 				refresh();
 			}
 		}
@@ -67,8 +76,9 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 
 		// Setup web request intent filter
 		final IntentFilter filter = new IntentFilter();
-		filter.addAction(WebRequestReceiver.ACTION_UPDATE);
-		filter.addAction(WebRequestReceiver.ACTION_ADD);
+		filter.addAction(WebRequestReceiver.ACTION_UPDATE_NEARBY);
+		filter.addAction(WebRequestReceiver.ACTION_ADD_NEARBY);
+		filter.addAction(WebRequestReceiver.ACTION_UPDATE_MENU);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
 		mRequestReceiver = new WebRequestReceiver();
 		registerReceiver(mRequestReceiver, filter);
@@ -80,9 +90,11 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				if (count == 0) {
 					setDrawerIndicatorEnabled(true);
 					switch (mActiveDisplay) {
-						case NEARBY:
+						case MENU:
+							mActiveDisplay = Display.NEARBY;
 							break;
 					}
+					display(mActiveDisplay);
 					return;
 				}
 				setDrawerIndicatorEnabled(false);
@@ -140,7 +152,8 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+	public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[],
+	                                       @NonNull int[] grantResults) {
 		switch (requestCode) {
 			case 0: {
 				// If request is cancelled, the result arrays are empty.
@@ -173,34 +186,35 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 				getSupportFragmentManager().beginTransaction()
 						.replace(R.id.container, mNearbyFragment)
 						.commit();
-				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
 				setTitle(getResources().getString(R.string.title_nearby));
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
 				params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
 				toolbar.setLayoutParams(params);
 				break;
 			case LOGIN:
+				break;
+			case MENU:
 				getSupportFragmentManager().beginTransaction()
-						.replace(R.id.container, mNearbyFragment)
+						.replace(R.id.container, mRestaurantMenuFragment)
 						.addToBackStack(null)
 						.commit();
-				params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL |
-						AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS);
+				((AppBarLayout) findViewById(R.id.appbar)).setExpanded(true);
+				params.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
 				toolbar.setLayoutParams(params);
-				break;
 		}
 	}
 
 	public void refresh() {
 		if (mActiveDisplay == Display.NEARBY) {
-			if (!mLocationTracker.hasLocation()) {
+			if (!mLocationTracker.hasPossiblyStaleLocation()) {
 				mNearbyFragment.setRefreshing(false); // TODO: make this recur
 				Log.d(TAG, "No GPS lock");
-				Snackbar.make(findViewById(R.id.container), "No GPS lock", Snackbar.LENGTH_SHORT).show();
+				Snackbar.make(findViewById(R.id.container), "Waiting for GPS lock...", Snackbar.LENGTH_SHORT).show();
 				return;
 			}
 			final Intent webRequest = new Intent(WebRequestService.ACTION_LOAD_NEARBY, null, this, WebRequestService.class);
-			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_UPDATE);
-			webRequest.putExtra(WebRequestService.EXTRA_URL, API.getNearby(mLocationTracker.getLocation(), 0));
+			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_UPDATE_NEARBY);
+			webRequest.putExtra(WebRequestService.EXTRA_URL, API.getNearby(mLocationTracker.getPossiblyStaleLocation(), 0));
 			startService(webRequest);
 		}
 	}
@@ -208,42 +222,86 @@ public class MainActivity extends DrawerActivity implements NearbyFragment.OnFra
 	public void loadMore(int startIndex) {
 		if (mActiveDisplay == Display.NEARBY) {
 			final Intent webRequest = new Intent(WebRequestService.ACTION_LOAD_NEARBY, null, this, WebRequestService.class);
-			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_ADD);
-			webRequest.putExtra(WebRequestService.EXTRA_URL, API.getNearby(mLocationTracker.getLocation(), startIndex));
+			webRequest.putExtra(WebRequestService.EXTRA_OUT,
+					WebRequestReceiver.ACTION_ADD_NEARBY);
+			webRequest.putExtra(WebRequestService.EXTRA_URL,
+					API.getNearby(mLocationTracker.getPossiblyStaleLocation(), startIndex));
 			startService(webRequest);
 		}
 	}
 
 	public void select(Restaurant restaurant) {
-		// TODO: stub
+		if (mActiveDisplay == Display.NEARBY) {
+			if (mRestaurantMenuFragment == null) {
+				mRestaurantMenuFragment = RestaurantMenuFragment.newInstance(restaurant);
+			} else {
+				mRestaurantMenuFragment.setArgRestaurant(restaurant);
+			}
+			display(Display.MENU);
+			setTitle(restaurant.getName());
+			// Send request
+			final Intent webRequest = new Intent(WebRequestService.ACTION_LOAD_MENU, null, this, WebRequestService.class);
+			webRequest.putExtra(WebRequestService.EXTRA_OUT, WebRequestReceiver.ACTION_UPDATE_MENU);
+			webRequest.putExtra(WebRequestService.EXTRA_URL, API.getMenu(restaurant.getId()));
+			startService(webRequest);
+		}
+	}
+
+	public void select(final MenuEntry entry) {
+		new BottomSheet.Builder(this)
+				.title("Rate this meal")
+				.sheet(R.menu.sheet_rating)
+				.grid()
+				.listener(new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch (which) {
+					case R.id.vote_down:
+						break;
+					case R.id.vote_neutral:
+						break;
+					case R.id.vote_up:
+						break;
+				}
+			}
+		}).show();
 	}
 
 	public class WebRequestReceiver extends BroadcastReceiver {
-		public static final String ACTION_UPDATE =
-				"design.jsby.feedback.action.UPDATE";
-		public static final String ACTION_ADD =
-				"design.jsby.feedback.action.ADD";
+		public static final String ACTION_UPDATE_NEARBY =
+				"design.jsby.feedback.action.UPDATE_NEARBY";
+		public static final String ACTION_ADD_NEARBY =
+				"design.jsby.feedback.action.ADD_NEARBY";
+		public static final String ACTION_UPDATE_MENU =
+				"design.jsby.feedback.action.UPDATE_MENU";
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getBooleanExtra("error", false)) {
 				Snackbar.make(findViewById(R.id.container), "Cannot retrieve from server", Snackbar.LENGTH_LONG).show();
 				switch (intent.getAction()) {
-					case ACTION_UPDATE:
+					case ACTION_UPDATE_NEARBY:
+					case ACTION_ADD_NEARBY:
 						mNearbyFragment.setRefreshing(false);
 						return;
+					case ACTION_UPDATE_MENU:
+						mRestaurantMenuFragment.setRefreshing(false);
 					default:
 						return;
 				}
 			}
 			switch (intent.getAction()) {
-				case ACTION_UPDATE:
+				case ACTION_UPDATE_NEARBY:
 					mNearbyFragment.update(Utils.parcelableArrayToTypedArray(
 							intent.getParcelableArrayExtra(WebRequestService.EXTRA_OUT), Restaurant[].class));
 					break;
-				case ACTION_ADD:
+				case ACTION_ADD_NEARBY:
 					mNearbyFragment.addAll(Utils.parcelableArrayToTypedArray(
 							intent.getParcelableArrayExtra(WebRequestService.EXTRA_OUT), Restaurant[].class));
+					break;
+				case ACTION_UPDATE_MENU:
+					mRestaurantMenuFragment.update(Utils.parcelableArrayToTypedArray(
+							intent.getParcelableArrayExtra(WebRequestService.EXTRA_OUT), MenuEntry[].class));
 					break;
 			}
 		}

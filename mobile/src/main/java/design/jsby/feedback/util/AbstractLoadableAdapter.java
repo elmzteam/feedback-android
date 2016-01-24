@@ -10,7 +10,7 @@ public abstract class AbstractLoadableAdapter<T extends RecyclerView.ViewHolder>
 
 	@Override
 	public int getItemCount() {
-		return 1;
+		return mLoadable ? 1 : 0;
 	}
 
 	@Override
@@ -18,7 +18,19 @@ public abstract class AbstractLoadableAdapter<T extends RecyclerView.ViewHolder>
 		return mLoadable ? R.layout.item_loading : R.layout.item_padding;
 	}
 
+	public boolean isLoadable() {
+		return mLoadable;
+	}
+
 	public void setLoadable(boolean loadable) {
-		mLoadable = loadable;
+		if (mLoadable == loadable) return;
+
+		if (loadable) {
+			mLoadable = true;
+			notifyItemInserted(getItemCount() - 2);
+		} else {
+			mLoadable = false;
+			notifyItemRemoved(getItemCount());
+		}
 	}
 }

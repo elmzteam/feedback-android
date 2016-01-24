@@ -65,14 +65,12 @@ public class RestaurantAdapter extends AbstractLoadableAdapter<RestaurantAdapter
 		if (restaurant.hasImages()) {
 			Glide.with(mContext)
 					.load(restaurant.getImageURL(0))
-					.fitCenter()
+					.centerCrop()
 					.into(viewHolder.image);
-//			Log.d("A", position + " " + restaurant.getImageURL(0));
 		} else {
 			Glide.with(mContext)
-					.load(R.drawable.ic_menu_camera)
+					.load(R.drawable.ic_local_dining_white_48dp)
 					.into(viewHolder.image);
-//			Log.d("nop", "nop" + position);
 		}
 		viewHolder.card.setPreventCornerOverlap(false);
 		viewHolder.card.setOnClickListener(new View.OnClickListener() {

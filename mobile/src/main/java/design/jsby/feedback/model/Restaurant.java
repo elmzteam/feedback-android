@@ -80,8 +80,8 @@ public class Restaurant implements Parcelable {
 		return address;
 	}
 
-	public float getDistance() {
-		return distance;
+	public int getDistance() {
+		return (int) distance;
 	}
 
 	public String getCategories() {

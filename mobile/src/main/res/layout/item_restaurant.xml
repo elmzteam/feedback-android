@@ -16,21 +16,29 @@
 		<ImageView
 			android:id="@+id/image"
 			android:layout_width="match_parent"
-			android:layout_height="128dp"/>
+			android:layout_height="192dp"
+			android:foreground="@drawable/card_shadow"
+			android:background="@color/accent400"/>
 		<TextView
 			android:id="@+id/title"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginBottom="8dp"
+			android:paddingLeft="16dp"
+			android:paddingRight="16dp"
 			android:fontFamily="sans-serif-light"
 			android:textSize="@dimen/abc_text_size_title_material"
-			android:textColor="@color/abc_primary_text_material_light"
+			android:textColor="@color/white"
 			android:layout_alignBottom="@id/image"/>
 		<TextView
 			android:id="@+id/address"
-			android:layout_width="wrap_content"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_below="@id/image"
+			android:layout_below="@id/title"
+			android:layout_marginTop="16dp"
+			android:paddingLeft="16dp"
+			android:paddingRight="16dp"
+			android:singleLine="true"
 			android:textSize="@dimen/abc_text_size_caption_material"
 			android:textColor="@color/abc_secondary_text_material_light"/>
 		<TextView
@@ -38,9 +46,11 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginTop="16dp"
+			android:paddingLeft="16dp"
+			android:paddingRight="16dp"
+			android:layout_marginBottom="16dp"
 			android:layout_below="@id/address"
 			android:textSize="@dimen/abc_text_size_body_1_material"
-			android:maxLines="4"
-			android:ellipsize="end"/>
+			android:singleLine="true"/>
 	</RelativeLayout>
 </android.support.v7.widget.CardView>
